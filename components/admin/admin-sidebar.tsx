@@ -18,20 +18,22 @@ export function AdminSidebar() {
   ]
 
   return (
-    <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Gestion des chantiers</p>
+    <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full">
+      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+        <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
+        <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Gestion des chantiers</p>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-3 md:p-4 space-y-1 md:space-y-2">
         {navigation.map((item) => {
           const isActive = pathname === item.href
           return (
             <Link key={item.name} href={item.href}>
-              <Button variant={isActive ? "default" : "ghost"} className="w-full justify-start gap-3" size="sm">
+              <Button
+                variant={isActive ? "default" : "ghost"}
+                className="w-full justify-start gap-2 md:gap-3 text-sm"
+                size="sm"
+              >
                 <item.icon className="h-4 w-4" />
                 {item.name}
               </Button>
@@ -40,23 +42,27 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* User info and logout */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <Card className="p-3 mb-3">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-              <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+      <div className="p-3 md:p-4 border-t border-gray-200 dark:border-gray-700">
+        <Card className="p-2 md:p-3 mb-2 md:mb-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="h-6 w-6 md:h-8 md:w-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+              <User className="h-3 w-3 md:h-4 md:w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              <p className="text-xs md:text-sm font-medium text-gray-900 dark:text-white truncate">
                 {user?.first_name} {user?.last_name}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">{user?.role}</p>
             </div>
           </div>
         </Card>
-        <Button onClick={signOut} variant="outline" className="w-full gap-2 bg-transparent" size="sm">
-          <LogOut className="h-4 w-4" />
+        <Button
+          onClick={signOut}
+          variant="outline"
+          className="w-full gap-2 bg-transparent text-xs md:text-sm"
+          size="sm"
+        >
+          <LogOut className="h-3 w-3 md:h-4 md:w-4" />
           Déconnexion
         </Button>
       </div>

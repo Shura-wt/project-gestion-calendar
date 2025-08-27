@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, Building2, Clock, MapPin, Navigation } from "lucide-react"
+import { Calendar, Building2, Clock, MapPin } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { NavigationButtons } from "@/components/ui/navigation-buttons"
 
 async function getUserData() {
   const supabase = await createClient()
@@ -62,7 +62,7 @@ async function getEmployeeStats(userId: string) {
     .select(`
       *,
       projects (
-        id, name, location, color
+        id, name, location, color, waze_link, google_maps_link
       )
     `)
     .eq("user_id", userId)
@@ -114,45 +114,36 @@ export default async function EmployeeDashboard() {
 
   const AssignmentCard = ({ assignment, showDate = false }: { assignment: any; showDate?: boolean }) => (
     <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <div
-              className="w-4 h-4 rounded-full"
+              className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
               style={{ backgroundColor: assignment.projects?.color || "#3B82F6" }}
             />
-            <h3 className="font-semibold text-gray-900 dark:text-white">{assignment.projects?.name}</h3>
+            <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate">
+              {assignment.projects?.name}
+            </h3>
           </div>
           {showDate && (
-            <Badge variant="outline">{new Date(assignment.assignment_date).toLocaleDateString("fr-FR")}</Badge>
+            <Badge variant="outline" className="text-xs self-start sm:self-auto">
+              {new Date(assignment.assignment_date).toLocaleDateString("fr-FR")}
+            </Badge>
           )}
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <MapPin className="h-4 w-4" />
-            {assignment.projects?.location}
+          <div className="flex items-start gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 flex-shrink-0" />
+            <span className="break-words">{assignment.projects?.location}</span>
           </div>
 
-          {assignment.notes && <p className="text-sm text-gray-600 dark:text-gray-400">{assignment.notes}</p>}
+          {assignment.notes && (
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 break-words">{assignment.notes}</p>
+          )}
 
-          <div className="flex gap-2 pt-2">
-            {assignment.projects?.waze_link && (
-              <Button size="sm" variant="outline" asChild>
-                <a href={assignment.projects.waze_link} target="_blank" rel="noopener noreferrer">
-                  <Navigation className="h-4 w-4 mr-1" />
-                  Waze
-                </a>
-              </Button>
-            )}
-            {assignment.projects?.google_maps_link && (
-              <Button size="sm" variant="outline" asChild>
-                <a href={assignment.projects.google_maps_link} target="_blank" rel="noopener noreferrer">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  Maps
-                </a>
-              </Button>
-            )}
+          <div className="pt-2">
+            <NavigationButtons address={assignment.projects?.location || ""} className="flex-wrap" />
           </div>
         </div>
       </CardContent>
@@ -161,37 +152,27 @@ export default async function EmployeeDashboard() {
 
   const ProjectCard = ({ project }: { project: any }) => (
     <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: project.color || "#3B82F6" }} />
-          <h3 className="font-semibold text-gray-900 dark:text-white">{project.name}</h3>
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-center gap-2 sm:gap-3 mb-3">
+          <div
+            className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
+            style={{ backgroundColor: project.color || "#3B82F6" }}
+          />
+          <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate">{project.name}</h3>
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm text-gray-600 dark:text-gray-400">{project.description}</p>
+          {project.description && (
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 break-words">{project.description}</p>
+          )}
 
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <MapPin className="h-4 w-4" />
-            {project.location}
+          <div className="flex items-start gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 flex-shrink-0" />
+            <span className="break-words">{project.location}</span>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            {project.waze_link && (
-              <Button size="sm" variant="outline" asChild>
-                <a href={project.waze_link} target="_blank" rel="noopener noreferrer">
-                  <Navigation className="h-4 w-4 mr-1" />
-                  Waze
-                </a>
-              </Button>
-            )}
-            {project.google_maps_link && (
-              <Button size="sm" variant="outline" asChild>
-                <a href={project.google_maps_link} target="_blank" rel="noopener noreferrer">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  Maps
-                </a>
-              </Button>
-            )}
+          <div className="pt-2">
+            <NavigationButtons address={project.location || ""} className="flex-wrap" />
           </div>
         </div>
       </CardContent>
@@ -199,52 +180,58 @@ export default async function EmployeeDashboard() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Mon Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400">Vue d'ensemble de mes affectations</p>
+      <div className="space-y-1 sm:space-y-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Mon Dashboard</h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Vue d'ensemble de mes affectations</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Aujourd'hui</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.todayAssignments.length}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Aujourd'hui</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.todayAssignments.length}
+                </p>
               </div>
-              <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20">
-                <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 sm:p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 flex-shrink-0">
+                <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Cette semaine</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.weekAssignments.length}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Cette semaine</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.weekAssignments.length}
+                </p>
               </div>
-              <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/20">
-                <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="p-2 sm:p-3 rounded-full bg-green-100 dark:bg-green-900/20 flex-shrink-0">
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="p-6">
+        <Card className="hover:shadow-lg transition-shadow sm:col-span-2 lg:col-span-1">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ce mois</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.monthAssignments.length}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Ce mois</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.monthAssignments.length}
+                </p>
               </div>
-              <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900/20">
-                <Building2 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 sm:p-3 rounded-full bg-purple-100 dark:bg-purple-900/20 flex-shrink-0">
+                <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
@@ -254,14 +241,14 @@ export default async function EmployeeDashboard() {
       {/* Today's Assignments */}
       {stats.todayAssignments.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
               Mes affectations d'aujourd'hui
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {stats.todayAssignments.map((assignment) => (
                 <AssignmentCard key={assignment.id} assignment={assignment} />
               ))}
@@ -272,26 +259,36 @@ export default async function EmployeeDashboard() {
 
       {/* Tabs for different views */}
       <Tabs defaultValue="assignments" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="assignments">Mes Affectations</TabsTrigger>
-          <TabsTrigger value="projects">Chantiers</TabsTrigger>
-          {stats.userRole === "SUPERVISEUR" && <TabsTrigger value="teams">Équipes</TabsTrigger>}
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 h-auto">
+          <TabsTrigger value="assignments" className="text-xs sm:text-sm px-2 py-2">
+            Mes Affectations
+          </TabsTrigger>
+          <TabsTrigger value="projects" className="text-xs sm:text-sm px-2 py-2">
+            Chantiers
+          </TabsTrigger>
+          {stats.userRole === "SUPERVISEUR" && (
+            <TabsTrigger value="teams" className="text-xs sm:text-sm px-2 py-2 col-span-2 sm:col-span-1">
+              Équipes
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="assignments" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Historique des affectations</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl">Historique des affectations</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0">
               {stats.allAssignments.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {stats.allAssignments.map((assignment) => (
                     <AssignmentCard key={assignment.id} assignment={assignment} showDate={true} />
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500 py-8">Aucune affectation trouvée</p>
+                <p className="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">
+                  Aucune affectation trouvée
+                </p>
               )}
             </CardContent>
           </Card>
@@ -299,18 +296,18 @@ export default async function EmployeeDashboard() {
 
         <TabsContent value="projects" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Chantiers accessibles</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl">Chantiers accessibles</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0">
               {stats.accessibleProjects.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                   {stats.accessibleProjects.map((project) => (
                     <ProjectCard key={project.id} project={project} />
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500 py-8">Aucun chantier accessible</p>
+                <p className="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">Aucun chantier accessible</p>
               )}
             </CardContent>
           </Card>
@@ -319,11 +316,13 @@ export default async function EmployeeDashboard() {
         {stats.userRole === "SUPERVISEUR" && (
           <TabsContent value="teams" className="space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Gestion des équipes</CardTitle>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl">Gestion des équipes</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-center text-gray-500 py-8">Fonctionnalité de gestion d'équipes à venir</p>
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <p className="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">
+                  Fonctionnalité de gestion d'équipes à venir
+                </p>
               </CardContent>
             </Card>
           </TabsContent>

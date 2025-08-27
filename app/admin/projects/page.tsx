@@ -12,8 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Edit, Trash2, MapPin, Navigation } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Plus, Edit, Trash2, MapPin } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { NavigationButtons } from "@/components/ui/navigation-buttons"
 
 interface Project {
   id: string
@@ -206,18 +208,53 @@ export default function ProjectsPage() {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: project.color }} />
-            <CardTitle className="text-lg">{project.name}</CardTitle>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: project.color }} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Couleur du projet: {project.color}</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger>
+                <CardTitle className="text-lg truncate max-w-[200px]">{project.name}</CardTitle>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{project.name}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <Badge className={getStatusBadgeColor(project.status)}>{getStatusLabel(project.status)}</Badge>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge className={getStatusBadgeColor(project.status)}>{getStatusLabel(project.status)}</Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Statut du projet: {getStatusLabel(project.status)}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-gray-600 dark:text-gray-400">{project.description}</p>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <MapPin className="h-4 w-4" />
-          {project.location}
-        </div>
+        <Tooltip>
+          <TooltipTrigger>
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{project.description}</p>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <p>{project.description}</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{project.location}</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Localisation: {project.location}</p>
+          </TooltipContent>
+        </Tooltip>
         {(project.start_date || project.end_date) && (
           <div className="text-sm text-gray-500">
             {project.start_date && `Début: ${new Date(project.start_date).toLocaleDateString("fr-FR")}`}
@@ -225,29 +262,28 @@ export default function ProjectsPage() {
             {project.end_date && `Fin: ${new Date(project.end_date).toLocaleDateString("fr-FR")}`}
           </div>
         )}
-        <div className="flex gap-2 pt-2">
-          {project.waze_link && (
-            <Button size="sm" variant="outline" asChild>
-              <a href={project.waze_link} target="_blank" rel="noopener noreferrer">
-                <Navigation className="h-4 w-4 mr-1" />
-                Waze
-              </a>
-            </Button>
-          )}
-          {project.google_maps_link && (
-            <Button size="sm" variant="outline" asChild>
-              <a href={project.google_maps_link} target="_blank" rel="noopener noreferrer">
-                <MapPin className="h-4 w-4 mr-1" />
-                Maps
-              </a>
-            </Button>
-          )}
-          <Button size="sm" variant="outline" onClick={() => setEditingProject(project)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="destructive" onClick={() => handleDeleteProject(project.id)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
+        <div className="flex gap-2 pt-2 flex-wrap">
+          <NavigationButtons wazeLink={project.waze_link} googleMapsLink={project.google_maps_link} size="sm" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="outline" onClick={() => setEditingProject(project)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Modifier le projet</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="destructive" onClick={() => handleDeleteProject(project.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Supprimer le projet</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </CardContent>
     </Card>
@@ -262,265 +298,321 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestion des Projets</h1>
-          <p className="text-gray-600 dark:text-gray-400">Gérez vos chantiers et projets</p>
-        </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Nouveau Projet
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Créer un nouveau projet</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateProject} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+    <TooltipProvider>
+      <div className="space-y-6 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Gestion des Projets</h1>
+            <p className="text-gray-600 dark:text-gray-400">Gérez vos chantiers et projets</p>
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 w-full sm:w-auto">
+                    <Plus className="h-4 w-4" />
+                    <span className="hidden sm:inline">Nouveau Projet</span>
+                    <span className="sm:hidden">Nouveau</span>
+                  </Button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Créer un nouveau projet</p>
+              </TooltipContent>
+            </Tooltip>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Créer un nouveau projet</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateProject} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Nom du projet</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Statut</Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(value) => setFormData({ ...formData, status: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EN_ATTENTE">En attente</SelectItem>
+                        <SelectItem value="EN_COURS">En cours</SelectItem>
+                        <SelectItem value="FINI">Terminé</SelectItem>
+                        <SelectItem value="ANNULÉ">Annulé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div>
-                  <Label htmlFor="name">Nom du projet</Label>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="location">Localisation</Label>
                   <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="status">Statut</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => setFormData({ ...formData, status: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EN_ATTENTE">En attente</SelectItem>
-                      <SelectItem value="EN_COURS">En cours</SelectItem>
-                      <SelectItem value="FINI">Terminé</SelectItem>
-                      <SelectItem value="ANNULÉ">Annulé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="location">Localisation</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="start_date">Date de début</Label>
-                  <Input
-                    id="start_date"
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="end_date">Date de fin</Label>
-                  <Input
-                    id="end_date"
-                    type="date"
-                    value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Couleur du projet</Label>
-                <div className="flex gap-2 mt-2">
-                  {PROJECT_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`w-8 h-8 rounded-full border-2 ${
-                        formData.color === color ? "border-gray-900 dark:border-white" : "border-gray-300"
-                      }`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setFormData({ ...formData, color })}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="start_date">Date de début</Label>
+                    <Input
+                      id="start_date"
+                      type="date"
+                      value={formData.start_date}
+                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                     />
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="waze_link">Lien Waze</Label>
-                  <Input
-                    id="waze_link"
-                    type="url"
-                    value={formData.waze_link}
-                    onChange={(e) => setFormData({ ...formData, waze_link: e.target.value })}
-                  />
+                  </div>
+                  <div>
+                    <Label htmlFor="end_date">Date de fin</Label>
+                    <Input
+                      id="end_date"
+                      type="date"
+                      value={formData.end_date}
+                      onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                    />
+                  </div>
                 </div>
                 <div>
-                  <Label htmlFor="google_maps_link">Lien Google Maps</Label>
-                  <Input
-                    id="google_maps_link"
-                    type="url"
-                    value={formData.google_maps_link}
-                    onChange={(e) => setFormData({ ...formData, google_maps_link: e.target.value })}
-                  />
+                  <Label>Couleur du projet</Label>
+                  <div className="flex gap-2 mt-2">
+                    {PROJECT_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={`w-8 h-8 rounded-full border-2 ${
+                          formData.color === color ? "border-gray-900 dark:border-white" : "border-gray-300"
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setFormData({ ...formData, color })}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Création..." : "Créer le projet"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="waze_link">Lien Waze</Label>
+                    <Input
+                      id="waze_link"
+                      type="url"
+                      value={formData.waze_link}
+                      onChange={(e) => setFormData({ ...formData, waze_link: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="google_maps_link">Lien Google Maps</Label>
+                    <Input
+                      id="google_maps_link"
+                      type="url"
+                      value={formData.google_maps_link}
+                      onChange={(e) => setFormData({ ...formData, google_maps_link: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Création..." : "Créer le projet"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <Tabs defaultValue="EN_COURS" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="EN_COURS" className="text-xs sm:text-sm">
+                  <span className="hidden sm:inline">En cours</span>
+                  <span className="sm:hidden">Cours</span>
+                  <span className="ml-1">({filterProjectsByStatus("EN_COURS").length})</span>
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Projets en cours ({filterProjectsByStatus("EN_COURS").length})</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="EN_ATTENTE" className="text-xs sm:text-sm">
+                  <span className="hidden sm:inline">En attente</span>
+                  <span className="sm:hidden">Attente</span>
+                  <span className="ml-1">({filterProjectsByStatus("EN_ATTENTE").length})</span>
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Projets en attente ({filterProjectsByStatus("EN_ATTENTE").length})</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="FINI" className="text-xs sm:text-sm">
+                  <span className="hidden sm:inline">Terminés</span>
+                  <span className="sm:hidden">Finis</span>
+                  <span className="ml-1">({filterProjectsByStatus("FINI").length})</span>
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Projets terminés ({filterProjectsByStatus("FINI").length})</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="ANNULÉ" className="text-xs sm:text-sm">
+                  <span className="hidden sm:inline">Annulés</span>
+                  <span className="sm:hidden">Annulés</span>
+                  <span className="ml-1">({filterProjectsByStatus("ANNULÉ").length})</span>
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Projets annulés ({filterProjectsByStatus("ANNULÉ").length})</p>
+              </TooltipContent>
+            </Tooltip>
+          </TabsList>
+
+          <TabsContent value="EN_COURS" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filterProjectsByStatus("EN_COURS").map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="EN_ATTENTE" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filterProjectsByStatus("EN_ATTENTE").map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="FINI" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filterProjectsByStatus("FINI").map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ANNULÉ" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filterProjectsByStatus("ANNULÉ").map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {editingProject && (
+          <Dialog open={!!editingProject} onOpenChange={() => setEditingProject(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Modifier le projet</DialogTitle>
+              </DialogHeader>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  const formData = new FormData(e.currentTarget)
+                  handleUpdateProject(editingProject.id, {
+                    name: formData.get("name") as string,
+                    description: formData.get("description") as string,
+                    location: formData.get("location") as string,
+                    status: formData.get("status") as string,
+                    start_date: formData.get("start_date") as string,
+                    end_date: formData.get("end_date") as string,
+                    waze_link: formData.get("waze_link") as string,
+                    google_maps_link: formData.get("google_maps_link") as string,
+                  })
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit_name">Nom du projet</Label>
+                    <Input id="edit_name" name="name" defaultValue={editingProject.name} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit_status">Statut</Label>
+                    <Select name="status" defaultValue={editingProject.status}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EN_ATTENTE">En attente</SelectItem>
+                        <SelectItem value="EN_COURS">En cours</SelectItem>
+                        <SelectItem value="FINI">Terminé</SelectItem>
+                        <SelectItem value="ANNULÉ">Annulé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="edit_description">Description</Label>
+                  <Textarea id="edit_description" name="description" defaultValue={editingProject.description} />
+                </div>
+                <div>
+                  <Label htmlFor="edit_location">Localisation</Label>
+                  <Input id="edit_location" name="location" defaultValue={editingProject.location} required />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit_start_date">Date de début</Label>
+                    <Input
+                      id="edit_start_date"
+                      name="start_date"
+                      type="date"
+                      defaultValue={editingProject.start_date}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit_end_date">Date de fin</Label>
+                    <Input id="edit_end_date" name="end_date" type="date" defaultValue={editingProject.end_date} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit_waze_link">Lien Waze</Label>
+                    <Input id="edit_waze_link" name="waze_link" type="url" defaultValue={editingProject.waze_link} />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit_google_maps_link">Lien Google Maps</Label>
+                    <Input
+                      id="edit_google_maps_link"
+                      name="google_maps_link"
+                      type="url"
+                      defaultValue={editingProject.google_maps_link}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1">
+                    Sauvegarder
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setEditingProject(null)}>
+                    Annuler
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
-
-      {/* Projects Tabs */}
-      <Tabs defaultValue="EN_COURS" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="EN_COURS">En cours ({filterProjectsByStatus("EN_COURS").length})</TabsTrigger>
-          <TabsTrigger value="EN_ATTENTE">En attente ({filterProjectsByStatus("EN_ATTENTE").length})</TabsTrigger>
-          <TabsTrigger value="FINI">Terminés ({filterProjectsByStatus("FINI").length})</TabsTrigger>
-          <TabsTrigger value="ANNULÉ">Annulés ({filterProjectsByStatus("ANNULÉ").length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="EN_COURS" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filterProjectsByStatus("EN_COURS").map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="EN_ATTENTE" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filterProjectsByStatus("EN_ATTENTE").map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="FINI" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filterProjectsByStatus("FINI").map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="ANNULÉ" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filterProjectsByStatus("ANNULÉ").map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Dialog de modification de projet */}
-      {editingProject && (
-        <Dialog open={!!editingProject} onOpenChange={() => setEditingProject(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Modifier le projet</DialogTitle>
-            </DialogHeader>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                const formData = new FormData(e.currentTarget)
-                handleUpdateProject(editingProject.id, {
-                  name: formData.get("name") as string,
-                  description: formData.get("description") as string,
-                  location: formData.get("location") as string,
-                  status: formData.get("status") as string,
-                  start_date: formData.get("start_date") as string,
-                  end_date: formData.get("end_date") as string,
-                  waze_link: formData.get("waze_link") as string,
-                  google_maps_link: formData.get("google_maps_link") as string,
-                })
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit_name">Nom du projet</Label>
-                  <Input id="edit_name" name="name" defaultValue={editingProject.name} required />
-                </div>
-                <div>
-                  <Label htmlFor="edit_status">Statut</Label>
-                  <Select name="status" defaultValue={editingProject.status}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EN_ATTENTE">En attente</SelectItem>
-                      <SelectItem value="EN_COURS">En cours</SelectItem>
-                      <SelectItem value="FINI">Terminé</SelectItem>
-                      <SelectItem value="ANNULÉ">Annulé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="edit_description">Description</Label>
-                <Textarea id="edit_description" name="description" defaultValue={editingProject.description} />
-              </div>
-              <div>
-                <Label htmlFor="edit_location">Localisation</Label>
-                <Input id="edit_location" name="location" defaultValue={editingProject.location} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit_start_date">Date de début</Label>
-                  <Input id="edit_start_date" name="start_date" type="date" defaultValue={editingProject.start_date} />
-                </div>
-                <div>
-                  <Label htmlFor="edit_end_date">Date de fin</Label>
-                  <Input id="edit_end_date" name="end_date" type="date" defaultValue={editingProject.end_date} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit_waze_link">Lien Waze</Label>
-                  <Input id="edit_waze_link" name="waze_link" type="url" defaultValue={editingProject.waze_link} />
-                </div>
-                <div>
-                  <Label htmlFor="edit_google_maps_link">Lien Google Maps</Label>
-                  <Input
-                    id="edit_google_maps_link"
-                    name="google_maps_link"
-                    type="url"
-                    defaultValue={editingProject.google_maps_link}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">
-                  Sauvegarder
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setEditingProject(null)}>
-                  Annuler
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+    </TooltipProvider>
   )
 }
