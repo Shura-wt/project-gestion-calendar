@@ -1,30 +1,45 @@
-# Construction site assignment app
+# Application de Gestion des Chantiers
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+Application de gestion d'affectation d'employés sur des chantiers de construction avec authentification Supabase et interface responsive.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/shura-wts-projects/v0-construction-site-assignment-app)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/9TUUlprTf4d)
+## Fonctionnalités
 
-## Overview
+- **Authentification sécurisée** avec Supabase et Row Level Security (RLS)
+- **Gestion des utilisateurs** : Création, modification, suppression d'employés
+- **Gestion des projets** : Organisation des chantiers avec statuts et géolocalisation
+- **Calendrier de planification** : Affectation drag & drop avec vues jour/semaine/mois
+- **Interface responsive** : Mobile-first avec burger menu
+- **Rôles hiérarchiques** : ADMIN > SUPERVISEUR > OUVRIER
+- **Navigation GPS** : Intégration Google Maps et Waze
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Variables d'environnement
 
-## Deployment
+Les variables d'environnement sont automatiquement configurées via l'intégration Vercel/Supabase.
 
-Your project is live at:
+Pour un développement local :
+1. Copiez `.env.example` vers `.env.local`
+2. Remplissez les valeurs depuis votre projet Supabase
+3. Exécutez les scripts SQL dans l'ordre (001 à 007)
 
-**[https://vercel.com/shura-wts-projects/v0-construction-site-assignment-app](https://vercel.com/shura-wts-projects/v0-construction-site-assignment-app)**
+## Structure de la base de données
 
-## Build your app
+- **users** : Employés avec rôles et statuts
+- **projects** : Chantiers avec géolocalisation et statuts
+- **assignments** : Affectations employé-projet par date
 
-Continue building your app on:
+## Déploiement
 
-**[https://v0.app/chat/projects/9TUUlprTf4d](https://v0.app/chat/projects/9TUUlprTf4d)**
+1. Connectez l'intégration Supabase dans les paramètres du projet
+2. Exécutez les scripts SQL de configuration
+3. Déployez sur Vercel
 
-## How It Works
+## Scripts SQL
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+Exécutez dans l'ordre :
+1. `001_create_tables.sql` - Création des tables
+2. `002_create_rls_policies.sql` - Politiques de sécurité
+3. `003_create_functions_triggers.sql` - Fonctions et triggers
+4. `004_seed_data.sql` - Données de test
+5. `005_additional_rls_policies.sql` - Politiques supplémentaires
+6. `006_fix_rls_policies.sql` - Correction récursion RLS
+7. `007_fix_assignments_constraint.sql` - Contraintes d'affectation
